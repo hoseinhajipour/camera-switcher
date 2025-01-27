@@ -1,3 +1,15 @@
+bl_info = {
+    "name": "Camera Switcher",
+    "author": "hosein hajipour",
+    "version": (1, 0),
+    "blender": (3, 0, 0),
+    "location": "View3D > Sidebar > Camera Tools",
+    "description": "Manage and animate multiple cameras with transitions.",
+    "warning": "",
+    "doc_url": "",
+    "category": "Camera",
+}
+
 import bpy
 
 # Property group to store camera switch data
@@ -7,7 +19,7 @@ class CameraSwitchItem(bpy.types.PropertyGroup):
     show_details: bpy.props.BoolProperty(name="Show Details", default=False)  # Toggle for collapsible state
 
 # Panel to display the camera switch list
-class CameraSwitcherPanel(bpy.types.Panel):
+class VIEW3D_PT_CameraSwitcher(bpy.types.Panel):
     """Creates a Panel in the 3D view sidebar"""
     bl_label = "Camera Switcher"
     bl_idname = "VIEW3D_PT_camera_switcher"
@@ -49,11 +61,11 @@ class CameraSwitcherPanel(bpy.types.Panel):
         
         layout.separator()
         layout.prop(scene, "transition_frames", text="Transition Frames")
-        layout.operator("camera.generate_animation", text="Generate")
+        layout.operator("camera.generate_animation", text="Generate Animation")
 
 
 # Operator to append selected cameras to the list
-class AppendSelectedCameraOperator(bpy.types.Operator):
+class CAMERA_OT_AppendSelected(bpy.types.Operator):
     bl_idname = "camera.append_selected"
     bl_label = "Append Selected Camera"
 
@@ -71,7 +83,7 @@ class AppendSelectedCameraOperator(bpy.types.Operator):
 
 
 # Operator to create a camera from the current 3D view
-class CreateCameraFromViewOperator(bpy.types.Operator):
+class CAMERA_OT_CreateFromView(bpy.types.Operator):
     bl_idname = "camera.create_from_view"
     bl_label = "Create Camera from View"
 
@@ -99,7 +111,7 @@ class CreateCameraFromViewOperator(bpy.types.Operator):
 
 
 # Operator to remove a camera from the list
-class RemoveCameraOperator(bpy.types.Operator):
+class CAMERA_OT_RemoveCamera(bpy.types.Operator):
     bl_idname = "camera.remove_camera"
     bl_label = "Remove Camera"
 
@@ -113,7 +125,7 @@ class RemoveCameraOperator(bpy.types.Operator):
 
 
 # Operator to set active camera
-class SetActiveCameraOperator(bpy.types.Operator):
+class CAMERA_OT_SetActive(bpy.types.Operator):
     bl_idname = "camera.set_active"
     bl_label = "Set Active Camera"
 
@@ -133,7 +145,7 @@ class SetActiveCameraOperator(bpy.types.Operator):
 
 
 # Operator to generate camera animation with transition frames
-class GenerateCameraAnimationOperator(bpy.types.Operator):
+class CAMERA_OT_GenerateAnimation(bpy.types.Operator):
     bl_idname = "camera.generate_animation"
     bl_label = "Generate Camera Animation"
 
@@ -186,30 +198,29 @@ class GenerateCameraAnimationOperator(bpy.types.Operator):
 
         self.report({'INFO'}, "Camera animation generated!")
         return {'FINISHED'}
-        
+
 
 # Register/unregister functions
+classes = (
+    CameraSwitchItem,
+    VIEW3D_PT_CameraSwitcher,
+    CAMERA_OT_AppendSelected,
+    CAMERA_OT_CreateFromView,
+    CAMERA_OT_RemoveCamera,
+    CAMERA_OT_SetActive,
+    CAMERA_OT_GenerateAnimation,
+)
+
 def register():
-    bpy.utils.register_class(CameraSwitcherPanel)
-    bpy.utils.register_class(AppendSelectedCameraOperator)
-    bpy.utils.register_class(CreateCameraFromViewOperator)
-    bpy.utils.register_class(GenerateCameraAnimationOperator)
-    bpy.utils.register_class(CameraSwitchItem)
-    bpy.utils.register_class(RemoveCameraOperator)
-    bpy.utils.register_class(SetActiveCameraOperator)
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
     bpy.types.Scene.camera_switch_list = bpy.props.CollectionProperty(type=CameraSwitchItem)
     bpy.types.Scene.transition_frames = bpy.props.IntProperty(name="Transition Frames", default=10, min=1)
 
-
 def unregister():
-    bpy.utils.unregister_class(CameraSwitcherPanel)
-    bpy.utils.unregister_class(AppendSelectedCameraOperator)
-    bpy.utils.unregister_class(CreateCameraFromViewOperator)
-    bpy.utils.unregister_class(GenerateCameraAnimationOperator)
-    bpy.utils.unregister_class(CameraSwitchItem)
-    bpy.utils.unregister_class(RemoveCameraOperator)
-    bpy.utils.unregister_class(SetActiveCameraOperator)
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
 
     del bpy.types.Scene.camera_switch_list
     del bpy.types.Scene.transition_frames
